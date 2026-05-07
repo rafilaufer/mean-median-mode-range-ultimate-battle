@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stat Convergence Loop</title>
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #00ff41;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: #000;
+            border: 2px solid #00ff41;
+            padding: 20px;
+            box-shadow: 0 0 15px #00ff41;
+            width: 90%;
+            max-width: 600px;
+        }
+        input {
+            background: #000;
+            border: 1px solid #00ff41;
+            color: #00ff41;
+            padding: 10px;
+            width: 70%;
+            margin-bottom: 10px;
+        }
+        button {
+            background: #00ff41;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #008f11;
+        }
+        #output {
+            margin-top: 20px;
+            white-space: pre-wrap;
+            border-top: 1px solid #333;
+            padding-top: 10px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>STAT CONVERGENCE</h2>
+        <p>Enter numbers separated by commas:</p>
+        <input type="text" id="numbersInput" value="2, 2, 2">
+        <button onclick="startLoop()">RUN SIMULATION</button>
+        
+        <div id="output">Results will appear here...</div>
+    </div>
+
+    <script>
+        function getStats(arr) {
+            arr.sort((a, b) => a - b);
+            
+            // Mean
+            const mean = arr.reduce((a, b) => a + b, 0) / arr.length;
+            
+            // Median
+            const mid = Math.floor(arr.length / 2);
+            const median = arr.length % 2 !== 0 ? arr[mid] : (arr[mid - 1] + arr[mid]) / 2;
+            
+            // Mode (Simple version: returns highest value if no single mode)
+            const counts = {};
+            arr.forEach(n => counts[n] = (counts[n] || 0) + 1);
+            let maxCount = 0;
+            let mode = arr[arr.length - 1];
+            for (let n in counts) {
+                if (counts[n] >= maxCount) {
+                    maxCount = counts[n];
+                    mode = parseFloat(n);
+                }
+            }
+            
+            // Range
+            const range = Math.max(...arr) - Math.min(...arr);
+            
+            return [mean, median, mode, range];
+        }
+
+        function startLoop() {
+            const input = document.getElementById('numbersInput').value;
+            let currentSet = input.split(',').map(Number).filter(n => !isNaN(n));
+            const output = document.getElementById('output');
+            output.innerHTML = "Initializing set: [" + currentSet.join(', ') + "]\n---\n";
+
+            for (let i = 1; i <= 20; i++) {
+                let stats = getStats(currentSet);
+                
+                // Displaying 4 decimal places
+                let display = stats.map(n => n.toFixed(4));
+                output.innerHTML += `Iteration ${i}: [${display.join(', ')}]\n`;
+
+                // Check for convergence
+                if (stats.every(val => Math.abs(val - stats[0]) < 0.0001)) {
+                    output.innerHTML += `\nSUCCESS: Agreement reached at ${stats[0].toFixed(4)}`;
+                    return;
+                }
+                
+                currentSet = stats;
+            }
+            output.innerHTML += "\nMax iterations reached.";
+        }
+    </script>
+</body>
+</html>
